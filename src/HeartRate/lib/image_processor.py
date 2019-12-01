@@ -1,0 +1,67 @@
+import numpy as np
+import time
+import cv2
+
+from matplotlib import pyplot as plt
+
+"""
+Whole-frame image processing components & helper methods
+"""
+
+class ImageProcessor:
+
+    # Path to the facecascade
+    faceCascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+
+    @classmethod
+    def getGrayscale(cls, img):
+        return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    
+    @classmethod
+    def getHsv(cls, img):
+        return cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    
+    @classmethod
+    def equalizeImage(cls, img):
+        pass
+
+    @classmethod
+    def _drawHistogram(cls, img, channels, color='k'):
+        hist = cv2.calcHist([img], channels, None, [256], [0, 256])
+        plt.plot(hist, color=color)
+        plt.xlim([0, 256])
+    
+    @classmethod
+    def drawColorHistogram(cls, img):
+        for i, col in enumerate(['b', 'g', 'r']):
+            cls._drawHistogram(img, [i], color=col)
+        plt.show()
+    
+    @classmethod
+    def drawGrayscaleHistogram(cls, img):
+        grayscaleImage = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        cls._drawHistogram(grayscaleImage, [0])
+        plt.show()
+
+    @classmethod
+    def renderText(cls, img, text, pos=(10, 10), textSize=2):
+        col = (255, 0, 0)
+        cv2.putText(img, text, \
+                    pos, cv2.FONT_HERSHEY_PLAIN, textSize, col)
+
+    @classmethod
+    def renderBPMText(cls, img, bpm):
+        if bpm is None:
+            return
+
+        tsize = 2
+        text = "%.0f bpm" % (bpm[0])
+        cv2.putText(img, text, \
+                    (10, 30), cv2.FONT_HERSHEY_PLAIN, tsize, (255, 0, 0))
+        text = "%.0f bpm" % (bpm[1])
+        cv2.putText(img, text, \
+            (10, 70), cv2.FONT_HERSHEY_PLAIN, tsize, (0, 255, 0))
+        text = "%.0f bpm" % (bpm[2])
+        cv2.putText(img, text, \
+            (10, 110), cv2.FONT_HERSHEY_PLAIN, tsize, (0, 0, 255))
+    

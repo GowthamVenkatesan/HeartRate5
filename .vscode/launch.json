@@ -1,0 +1,125 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: HR Estimator Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.hr_estimator_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: HR Estimator - FileBatcher Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.hr_estimator_with_file_batcher_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Current File (Integrated Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: CameraTest",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.cameraTest",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: FaceSelectorTest",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.faceSelectorTest",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Signal Processor Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.signal_processor_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Batcher Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.batcher_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Manual Face Selector Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.manual_face_selector_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: FFT Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.fftTest",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Video Decoder Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.video_decoder_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Resampler Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.resampler_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: File Batcher Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.file_batcher_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Numpy Array Inspect",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.np_arr_inspect",
+            "console": "integratedTerminal"
+        },
+    ]
+}

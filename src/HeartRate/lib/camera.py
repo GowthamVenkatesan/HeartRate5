@@ -1,0 +1,60 @@
+import numpy as np
+import cv2
+
+from ..util.log import Log
+
+class Camera:
+    
+    def __init__(self, video=0, debug=False):
+        self.log = Log("Camera")
+        self.videoPath = video
+        print(f"videoPath: {self.videoPath}")
+        self.videoName = video.split("\\")[-1]
+        print(f"videoName: {self.videoName}")
+
+        self.debug = debug
+
+        self.log.log("Initializing")
+        self.capture = cv2.VideoCapture(video)
+        if not self.capture.isOpened():
+            raise RuntimeError(f"Cannot open camera: {video}")
+        self.width  = self.capture.get(cv2.CAP_PROP_FRAME_WIDTH)   # float
+        self.height = self.capture.get(cv2.CAP_PROP_FRAME_HEIGHT)  # float
+        self.fps    = self.capture.get(cv2.CAP_PROP_FPS)           # float
+
+        self.lastReadFrame = None
+
+        self.log.log("Ready")
+    
+    def getShape(self):
+        return (self.width, self.height)
+    
+    def getFps(self):
+        return self.fps
+    
+    def getFrame(self):
+        ret, frame = self.capture.read()
+        if ret == True:
+            if self.debug:
+                cv2.imshow("Camera", frame)
+            self.lastReadFrame = frame.copy()
+            return frame
+        else:
+            self.log.log("Video end!")
+            return None
+    
+    def getLastReadFrame(self):
+        return self.lastReadFrame
+
+    def getFrameNum(self):
+        return self.capture.get(cv2.CAP_PROP_POS_FRAMES)
+    
+    def getFrameCount(self):
+        return self.capture.get(cv2.CAP_PROP_FRAME_COUNT)
+    
+    def getVideoTime(self):
+        return (self.getFrameNum()/self.getFrameCount())*(self.getFrameCount()/self.getFps())
+
+    def release(self):
+        self.capture.release()
+    
