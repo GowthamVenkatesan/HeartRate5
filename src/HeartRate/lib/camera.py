@@ -6,10 +6,17 @@ import cv2
 
 from ..util.log import Log
 
+"""
+Abstraction of OpenCV Capture
+video:
+    0: capture from device camera
+    path: path to a video file
+"""
 class Camera:
     
     def __init__(self, video=0, debug=False):
         self.log = Log("Camera")
+
         self.videoPath = video
         print(f"videoPath: {self.videoPath}")
         if video == 0:
@@ -67,11 +74,16 @@ class Camera:
         self.capture.release()
 
 
-
+"""
+Real Time Camera
+exclusive for video=0
+adds additional features, like dynamic fps monitoring...
+"""
 class RealTimeCamera(Camera):
 
     def __init__(self, debug=False):
         super().__init__(0, debug)
+        
         self.log = Log("RealTimeCamera")
         
         self.log.log("Initializing")

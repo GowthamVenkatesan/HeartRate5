@@ -7,7 +7,7 @@ class Display:
 
     def __init__(self, fps=30, debug=False):
         self.fps = fps
-
+        
         self.debug = debug
         self.log = Log('Display')
     

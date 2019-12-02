@@ -7,7 +7,6 @@ from matplotlib import pyplot as plt
 """
 Whole-frame image processing components & helper methods
 """
-
 class ImageProcessor:
 
     # Path to the facecascade

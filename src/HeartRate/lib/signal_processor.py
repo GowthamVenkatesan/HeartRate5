@@ -8,16 +8,16 @@ from sklearn.preprocessing import normalize
 
 from ..lib.display import Display
 from ..util.log import Log
-
 from ..lib.camera import Camera, RealTimeCamera
 
 class FrameProcessor:
 
     def __init__(self, faceSelector, debug=False):
         self.log = Log("FrameProcessor")
+        
         self.debug = debug
-
         self.faceSelector = faceSelector
+        
         self.log.log("Ready")
 
     def getNextValues(self):

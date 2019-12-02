@@ -19,13 +19,13 @@ class FaceSelector():
 
     def __init__(self, camera, debug=False):
         self.log = Log("FaceSelector")
-        self.debug = debug
 
+        self.debug = debug
         self.camera = camera
 
         # We cache the face rect and use it if we don't have any face in the cur frame
         self.faceRect = None
-    
+
 
     def getFrame(self):
         baseImage = self.camera.getFrame()
@@ -38,6 +38,7 @@ class FaceSelector():
             self.log.log("found no faces!")
             if self.faceRect == None:
                 # skip until we have found a face from start of video
+                # FIXME: Skipping frames like this may cause fps calculation to be incorrect during start!!!
                 self.log.log("skipping frame!")
                 return self.getFrame()
         else:
@@ -56,6 +57,7 @@ class ManualFaceSelector:
 
     def __init__(self, camera, debug=False):
         self.log = Log("ManualFaceSelector")
+        
         self.camera = camera
         self.debug = debug
 
