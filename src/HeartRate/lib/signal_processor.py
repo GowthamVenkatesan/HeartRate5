@@ -9,6 +9,8 @@ from sklearn.preprocessing import normalize
 from ..lib.display import Display
 from ..util.log import Log
 
+from ..lib.camera import Camera, RealTimeCamera
+
 class FrameProcessor:
 
     def __init__(self, faceSelector, debug=False):
@@ -29,9 +31,13 @@ class FrameProcessor:
 class Batcher:
 
     def __init__(self, frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=True):
+        self.log = Log("Batcher")
+
+        # assume you are running at 30 fps for the calculations below,
+        # but you will be running at around 15 fps
         self.frameProcessor = frameProcessor
-        self.batchSize = int(batchSizeT*self.getSamplingRate())
-        self.bufSize = int(bufSizeT*self.getSamplingRate())
+        self.batchSize = int(batchSizeT*30)
+        self.bufSize = int(bufSizeT*30)
         self.batches = self.bufSize // self.batchSize
         self.debug = debug
 
@@ -41,10 +47,25 @@ class Batcher:
 
         self.empty = True
 
-        self.log = Log("Batcher")
+        # state vars
+        self.batchStartTime = None
+        self.batchEndTime = None
+        self.averageBatchFps = None
+
+        # setup other modules
+        # RealTimeCamera
+        if isinstance(self.frameProcessor.faceSelector.camera, RealTimeCamera):
+            self.frameProcessor.faceSelector.camera.setFpsAverageWindow(self.batchSize)
+            self.frameProcessor.faceSelector.camera.startFpsAverageWindow()
+
+        self.log.log("ready")
     
     def getNextBatch(self):
         # self.log.log(f"onStart:{self.channel_means_sliding}")
+
+        # reset fpsAverage window
+        if isinstance(self.frameProcessor.faceSelector.camera, RealTimeCamera):
+            self.frameProcessor.faceSelector.camera.startFpsAverageWindow()
 
         if self.empty:
             if self._fill_channel_means_sliding_first_run() == False:
@@ -62,6 +83,10 @@ class Batcher:
     
     def _fill_channel_means(self):
         self.log.log("_fill_channel_means():")
+        
+        # save start time
+        self.batchStartTime = time.time()
+
         for i in range(self.batchSize):
             thisValues = self.frameProcessor.getNextValues()
             if thisValues is None:
@@ -69,6 +94,11 @@ class Batcher:
                 return False
             self.channel_means[i: ] = thisValues
         
+        # save batch end times
+        self.batchEndTime = time.time()
+        # calc avgfps
+        self.averageBatchFps = self.batchSize/(self.batchEndTime - self.batchStartTime)
+
         # for i in range(3):
         #     self.channel_means[:,i] = signal.detrend(self.channel_means[:,i])
         
@@ -124,7 +154,8 @@ class Batcher:
     # added forom FileBatcher,
     # now Runner acquires samplingRate from us 
     def getSamplingRate(self):
-        return np.round(self.frameProcessor.faceSelector.camera.getFps())
+        self.log.log(f"getSamplingRate(): returning: {self.averageBatchFps}")
+        return self.averageBatchFps
 
 class IndependentComponentAnalysis:
 
@@ -147,18 +178,27 @@ class IndependentComponentAnalysis:
 
 class HREstimator:
 
-    def __init__(self, fs, alpha=0.8, beta=1.2, fftWindow=512, debug=False):
+    def __init__(self, getFs, alpha=0.8, beta=1.2, fftWindow=512, debug=False):
         self.debug = debug
         self.log = Log("HREstimator")
-        self.log.log(f"sampling rate: {fs}")
+        self.log.log(f"sampling rate: {getFs()}")
 
+        # alpha & beta values for bpf
         self.alpha = alpha
         self.beta = beta
-        self.lpf = LowPassFilter(fs, debug=False)
-        self.bpf = BandPassFilter(fs, debug=False)
+        
+        # Filter creation:
+        # the filters will be created for each batch,
+        # to accomodate for the varying sampling rates...
+
+        # ica
         self.ica = IndependentComponentAnalysis(debug=True)
+
+        # length of fft
         self.fftWindow = fftWindow
-        self.T = 1/fs
+
+        # cache of method to get fs
+        self.getFs = getFs
 
         # State variables
         self.currentHR = None
@@ -186,10 +226,13 @@ class HREstimator:
         thisBatchHR = []
         for i in range(3):
 
-
+            # crate lpf
+            self.lpf = LowPassFilter(self.getFs(), debug=False)
             # apply lpf
             x[:,i] = self.lpf.filterSignal(x[:,i])
 
+            # create bpf
+            self.bpf = BandPassFilter(self.getFs(), debug=False)
             # apply bpf
             # if True:
             if self.thisBatchHrCache == None:
@@ -205,7 +248,7 @@ class HREstimator:
         
             yf_i = np.fft.fft(x[:,i], n=self.fftWindow)
             # xf = np.linspace(0.0, 1.0/(2.0*self.T), yf_i.shape[0]//2)
-            xf = np.fft.fftfreq(self.fftWindow, d=self.T)
+            xf = np.fft.fftfreq(self.fftWindow, d=1/self.getFs())
             hr_i = xf[ yf_i[0:self.N//2-1].argmax() ] * 60
             thisBatchHR.append(hr_i)
 
@@ -237,28 +280,33 @@ class Runner:
 
         thisHr = hrEstimator.estimateHR(batcher.getNextBatch())
         self.display.render(camera.getLastReadFrame(), thisHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
-        while thisHr is not None:
-            self.hr.append(thisHr)
-            thisHr = hrEstimator.estimateHR(batcher.getNextBatch())
-            self.display.render(camera.getLastReadFrame(), thisHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
+        try:
+            while thisHr is not None:
+                self.hr.append(thisHr)
+                thisHr = hrEstimator.estimateHR(batcher.getNextBatch())
+                self.display.render(camera.getLastReadFrame(), thisHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
+        except KeyboardInterrupt:
+            self.log.log("displaying results")
+            self.displayResults()
         
+    def displayResults(self):
         # convert hr list to np array
         self.hr = np.array(self.hr)
         
         fig = plt.figure()
         plt.suptitle("Heart Rate")
         plt.subplot(3, 1, 1)
-        plt.plot(np.linspace(0, self.camera.getFrameCount()/self.fs, self.hr.shape[0]), self.hr[:,0], 'blue', label='Channel 1')
+        plt.plot(np.linspace(0, self.camera.getFrameCount()/self.batcher.getSamplingRate(), self.hr.shape[0]), self.hr[:,0], 'blue', label='Channel 1')
         plt.xlabel("Time (seconds)")
         plt.ylabel("Heart Rate (bpm)")
         plt.legend()
         plt.subplot(3, 1, 2)
-        plt.plot(np.linspace(0, self.camera.getFrameCount()/self.fs, self.hr.shape[0]), self.hr[:,1], 'green', label='Channel 2')
+        plt.plot(np.linspace(0, self.camera.getFrameCount()/self.batcher.getSamplingRate(), self.hr.shape[0]), self.hr[:,1], 'green', label='Channel 2')
         plt.xlabel("Time (seconds)")
         plt.ylabel("Heart Rate (bpm)")
         plt.legend()
         plt.subplot(3, 1, 3)
-        plt.plot(np.linspace(0, self.camera.getFrameCount()/self.fs, self.hr.shape[0]), self.hr[:,2], 'red', label='Channel 3')
+        plt.plot(np.linspace(0, self.camera.getFrameCount()/self.batcher.getSamplingRate(), self.hr.shape[0]), self.hr[:,2], 'red', label='Channel 3')
         plt.xlabel("Time (seconds)")
         plt.ylabel("Heart Rate (bpm)")
         plt.legend()

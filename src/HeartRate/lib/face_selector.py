@@ -15,7 +15,7 @@ we'll give you only the face
 """
 class FaceSelector():
 
-    faceCascade = cv2.CascadeClassifier(r'C:\Users\Gowtham\Documents\programs\HeartRate2\lib\haarcascade_frontalface_default.xml')
+    faceCascade = cv2.CascadeClassifier(r'D:\Gowtham\Programs\HeartRate\HeartRate5\src\HeartRate\lib\haarcascade_frontalface_default.xml')
 
     def __init__(self, camera, debug=False):
         self.log = Log("FaceSelector")
@@ -101,6 +101,18 @@ class ManualFaceSelector:
                 self._saveBounds()
             elif cmd == ord('c'):
                 self._loadBounds()
+            elif cmd == ord('i'):
+                # up
+                self._moveLine(activeLine, 0, -10)
+            elif cmd == ord('j'):
+                # left
+                self._moveLine(activeLine, -10, 0)
+            elif cmd == ord('k'):
+                # down
+                self._moveLine(activeLine, 0, 10)
+            elif cmd == ord('l'):
+                # right
+                self._moveLine(activeLine, 10, 0)
             else:
                 self.log.log("unknown command!")
 
@@ -140,7 +152,7 @@ class ManualFaceSelector:
     
     def _saveBounds(self):
         bounds = [self.start, self.end]
-        saveDir = r"C:\Users\Gowtham\Documents\programs\HeartRate4\data\bounds"
+        saveDir = r"D:\Gowtham\Programs\HeartRate\HeartRate5\data\bounds"
         saveFileName = self.camera.videoName + ".pickle"
         saveFilePath = os.path.join(saveDir, saveFileName)
         with open(saveFilePath, 'wb') as handle:

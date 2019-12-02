@@ -10,7 +10,7 @@ class DummyFrameProcessor:
         # print(f"giving:{self.x}")
         return self.x
 
-batcher = Batcher(DummyFrameProcessor(), batchSize=4, bufSize=4, debug=True)
+batcher = Batcher(DummyFrameProcessor(), batchSizeT=4, bufSizeT=4, debug=True)
 for i in range(10):
     thisBatch = batcher.getNextBatch()
     print(thisBatch)

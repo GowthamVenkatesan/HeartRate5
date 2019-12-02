@@ -121,5 +121,23 @@
             "module": "HeartRate.test.np_arr_inspect",
             "console": "integratedTerminal"
         },
+        {
+            "name": "Python: Realtime Test - Manual Face",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.real_time_hr_test_manual_face",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Realtime Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.real_time_hr_test",
+            "console": "integratedTerminal"
+        },
     ]
 }
