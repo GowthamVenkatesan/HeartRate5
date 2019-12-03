@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 
 from ..lib.camera import Camera, RealTimeCamera
 from ..lib.face_selector import FaceSelector, ManualFaceSelector
-from ..lib.signal_processor import Batcher, HREstimator, FrameProcessor, Runner
+from ..lib.batcher import Batcher
+from ..lib.hr_estimator import HREstimator, Runner
+from ..lib.frame_processor import FrameProcessor
 from ..util.log import Log
 
 log = Log("real_time_hr_test_manual_face")
