@@ -28,6 +28,16 @@ class FrameProcessor:
             self.log.log("frame is None!")
             return None
 
+class DummyFrameProcessor:
+
+    def __init__(self):
+        self.x = [0.0, 0.0, 0.0]
+    
+    def getNextValues(self):
+        self.x = [i+1 for i in self.x]
+        # print(f"giving:{self.x}")
+        return self.x
+
 class Batcher:
 
     def __init__(self, frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=True):
@@ -53,19 +63,12 @@ class Batcher:
         self.averageBatchFps = None
 
         # setup other modules
-        # RealTimeCamera
-        if isinstance(self.frameProcessor.faceSelector.camera, RealTimeCamera):
-            self.frameProcessor.faceSelector.camera.setFpsAverageWindow(self.batchSize)
-            self.frameProcessor.faceSelector.camera.startFpsAverageWindow()
-
+        # Nothing here yet...
+        
         self.log.log("ready")
     
     def getNextBatch(self):
         # self.log.log(f"onStart:{self.channel_means_sliding}")
-
-        # reset fpsAverage window
-        if isinstance(self.frameProcessor.faceSelector.camera, RealTimeCamera):
-            self.frameProcessor.faceSelector.camera.startFpsAverageWindow()
 
         if self.empty:
             if self._fill_channel_means_sliding_first_run() == False:

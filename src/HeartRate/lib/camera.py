@@ -107,23 +107,4 @@ class RealTimeCamera(Camera):
         self.log.log("Ready")
     
     def getFrame(self):
-        self.oldFrameTimeStamp = self.curFrameTimeStamp
-        self.curFrameTimeStamp = time.time()
-        self.fpsAverage += (self.curFrameTimeStamp - self.oldFrameTimeStamp)/self.fpsAverageWindow
-
-        # self.log.log(f"running at: {self.getFps()} fps")
         return super().getFrame()
-    
-    def getFps(self):
-        self.log.log(f"getFps(): returning:{1/(self.curFrameTimeStamp - self.oldFrameTimeStamp)}")
-        return 1/(self.curFrameTimeStamp - self.oldFrameTimeStamp)
-    
-    def startFpsAverageWindow(self):
-        self.fpsAverage = 0.0
-    
-    def getFpsAverage(self):
-        self.log.log(f"getFpsAverage(): returning: {self.fpsAverage}")
-        return self.fpsAverage
-    
-    def setFpsAverageWindow(self, fpsAverageWindow):
-        self.fpsAverageWindow = fpsAverageWindow

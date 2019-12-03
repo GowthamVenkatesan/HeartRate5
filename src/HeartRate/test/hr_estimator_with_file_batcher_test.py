@@ -1,3 +1,5 @@
+# We don't care
+
 # As our sampling rate changes, our fft window duration in time changes,
 # hold it constant in time and check if you get consistent hr estimates at different sampling frequencies
 

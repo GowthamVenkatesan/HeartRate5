@@ -24,7 +24,7 @@ log.log("Creating batcher")
 batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=3*2, debug=True)
 
 log.log("Creating hrEstimator")
-hrEstimator = HREstimator(batcher.getSamplingRate(), debug=False)
+hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
 
 try:
     log.log("Creating runner")

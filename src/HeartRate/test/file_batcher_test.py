@@ -1,3 +1,5 @@
+# We don't care about file batcher now...
+
 from ..lib.signal_util import FileBatcher
 
 from ..util.file_selector import FileSelector

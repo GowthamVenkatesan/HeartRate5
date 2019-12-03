@@ -4,7 +4,7 @@ from ..lib.camera import Camera
 from ..lib.face_selector import ManualFaceSelector
 from ..util.log import Log
 
-videoPath = r'C:\Users\Gowtham\Documents\programs\HeartRate\data\video1.mp4'
+videoPath = r'D:\Gowtham\Programs\HeartRate\HeartRate5\data\gowtham.mp4'
 
 log = Log("ManualFaceSelectorTest")
 

@@ -4,7 +4,7 @@ from ..lib.camera import Camera
 from ..lib.face_selector import FaceSelector
 from ..lib.image_processor import ImageProcessor
 
-videoPath = r'C:\Users\Gowtham\Documents\programs\HeartRate\data\video1.mp4'
+videoPath = r'D:\Gowtham\Programs\HeartRate\HeartRate5\data\gowtham.mp4'
 
 faceSelector = FaceSelector(Camera(videoPath))
 frame = faceSelector.getFrame()
