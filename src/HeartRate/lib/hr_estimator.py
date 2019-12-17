@@ -88,10 +88,13 @@ class HREstimator:
                 fh = self.beta*self.currentHR/60
                 x[:,i] = self.bpf.filterSignal(x[:,i], fl, fh)
         
+            # fatal mistake,
+            # used N instead of fftWindow,
+            # now everything is broken!
             yf_i = np.fft.fft(x[:,i], n=self.fftWindow)
             # xf = np.linspace(0.0, 1.0/(2.0*self.T), yf_i.shape[0]//2)
             xf = np.fft.fftfreq(self.fftWindow, d=1/self.getFs())
-            hr_i = xf[ yf_i[0:self.N//2-1].argmax() ] * 60
+            hr_i = xf[ yf_i[0:self.fftWindow//2-1].argmax() ] * 60
             thisBatchHR.append(hr_i)
 
             # self.log.log(f"channel:{i}, hr:{hr_i}bpm")
@@ -99,15 +102,15 @@ class HREstimator:
             if self.debug:
                 fig = plt.figure("HR Estimator")
                 # plt.clf()
-                plt.plot(xf[0:self.N//2-1], np.abs(yf_i[0:self.N//2-1]), self.colors[i])
+                plt.plot(xf[0:self.fftWindow//2-1], np.abs(yf_i[0:self.fftWindow//2-1]), self.colors[i])
                 plt.draw()
                 plt.pause(0.001)
 
-                self.log.log(f"yf_i: {yf_i}")
-                self.log.log(f"shape(yf_i): {yf_i.shape}")
-                self.log.log(f"xf: {xf}")
-                self.log.log(f"xf.shape: {xf.shape}")
-                self.log.log(f"possible heart rates: {xf*60}")
+                # self.log.log(f"yf_i: {yf_i}")
+                # self.log.log(f"shape(yf_i): {yf_i.shape}")
+                # self.log.log(f"xf: {xf}")
+                # self.log.log(f"xf.shape: {xf.shape}")
+                # self.log.log(f"possible heart rates: {xf*60}")
 
         # for now use the green channel
         self.currentHR = thisBatchHR[1]

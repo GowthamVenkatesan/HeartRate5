@@ -44,10 +44,12 @@ class IndependentComponentAnalysis:
 
 class LowPassFilter:
 
-    def __init__(self, fs, N = 7, fc = 5, debug=False):
+    def __init__(self, fs, N = 7, fc = 5, debug=False, window=True):
     # def __init__(self, N = 2, fc = 5, fs = 30, debug=False):
         self.debug = debug
-        self.filter_b, self.filter_a = signal.iirfilter(N, fc/(fs/2), btype='lowpass', analog=False)
+        self.window = window
+        # self.filter_b, self.filter_a = signal.iirfilter(N, fc/(fs/2), btype='lowpass', analog=False)
+        self.filter_b, self.filter_a = signal.butter(N, fc/(fs/2), analog=False)
         self.zi = None
         self.fs = fs
         self.log = Log('LowPassFilter')
@@ -58,7 +60,7 @@ class LowPassFilter:
         self.channel = 0
         self.colors = [ "r", "g", "b" ]
 
-        if False: #self.debug:
+        if True: #self.debug:
             self.log.log(f'Created iir lpf, N={N}, fc={fc}, fs={fs}, b={self.filter_b}, a={self.filter_a}')
             w, h = signal.freqz(self.filter_b, self.filter_a)
             
@@ -76,8 +78,8 @@ class LowPassFilter:
             plt.grid()
             plt.axis('tight')
             
-            plt.draw()
-            plt.pause(0.001)
+            plt.show()
+
     
     def filterSignal(self, x):
         if self.zi is None:

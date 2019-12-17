@@ -25,7 +25,7 @@ frameProcessor = FrameProcessor(faceSelector, debug=False)
 log.log("Creating batcher")
 # batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=3*2, debug=True)
 # batcher = Batcher(frameProcessor, batchSizeT=4, bufSizeT=1*4, debug=False)
-batcher = Batcher(frameProcessor, batchSizeT=3, bufSizeT=1*3, debug=False)
+batcher = Batcher(frameProcessor, batchSizeT=1, bufSizeT=1*3, debug=False)
 
 log.log("Creating hrEstimator")
 hrEstimator = HREstimator(batcher.getSamplingRate, debug=True)

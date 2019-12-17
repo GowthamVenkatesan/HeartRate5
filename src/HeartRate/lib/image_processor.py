@@ -54,13 +54,13 @@ class ImageProcessor:
             return
 
         tsize = 2
-        text = "%.0f bpm" % (bpm[0])
+        text = "%.0fbpm %.2fhz" % (bpm[0], bpm[0]/60)
         cv2.putText(img, text, \
-                    (10, 30), cv2.FONT_HERSHEY_PLAIN, tsize, (255, 0, 0))
-        text = "%.0f bpm" % (bpm[1])
+                    (10, 30), cv2.FONT_HERSHEY_PLAIN, tsize, (30, 30, 255))
+        text = "%.0fbpm %.2fhz" % (bpm[1], bpm[1]/60)
         cv2.putText(img, text, \
-            (10, 70), cv2.FONT_HERSHEY_PLAIN, tsize, (0, 255, 0))
-        text = "%.0f bpm" % (bpm[2])
+            (10, 70), cv2.FONT_HERSHEY_PLAIN, tsize, (30, 255, 30))
+        text = "%.0fbpm %.2fhz" % (bpm[2], bpm[2]/60)
         cv2.putText(img, text, \
-            (10, 110), cv2.FONT_HERSHEY_PLAIN, tsize, (0, 0, 255))
+            (10, 110), cv2.FONT_HERSHEY_PLAIN, tsize, (255, 30, 30))
     
