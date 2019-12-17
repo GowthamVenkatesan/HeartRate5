@@ -1,6 +1,7 @@
 import time
 
 import numpy as np
+from scipy import signal
 
 from ..lib.frame_processor import FrameProcessor
 from ..util.log import Log
@@ -69,12 +70,13 @@ class Batcher:
         # calc avgfps
         self.averageBatchFps = self.batchSize/(self.batchEndTime - self.batchStartTime)
 
-        # for i in range(3):
-        #     self.channel_means[:,i] = signal.detrend(self.channel_means[:,i])
+        # detrend
+        for i in range(3):
+            self.channel_means[:,i] = signal.detrend(self.channel_means[:,i], overwrite_data=True)
         
         # standardize the values
-        # for i in range(3):
-        #     self.channel_means[:, i] /= self.channel_means[:, i].std()
+        for i in range(3):
+            self.channel_means[:, i] = (self.channel_means[:, i] - self.channel_means[:, i].mean()) / self.channel_means[:, i].std()
 
         # normalize
         # self.channel_means = normalize(self.channel_means, axis=0, norm='max')
