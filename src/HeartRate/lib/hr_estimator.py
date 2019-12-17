@@ -32,6 +32,8 @@ class HREstimator:
         # State variables
         self.currentHR = None
         self.thisBatchHrCache = None
+
+        self.colors = [ "r", "g", "b" ]
     
     def estimateHR(self, x):
         """
@@ -53,15 +55,24 @@ class HREstimator:
         self.log.log("ica done")
 
         thisBatchHR = []
+        # fs does not change within a batch,
+        # so we create the filters here,
+        # useful for using the same figures throughout a batch :p
+        # crate lpf
+        self.lpf = LowPassFilter(self.getFs(), debug=True)
+        # create bpf
+        self.bpf = BandPassFilter(self.getFs(), debug=True)
+
+        # clear fig
+        if self.debug:
+            fig = plt.figure("HR Estimator")
+            plt.clf()
+        
         for i in range(3):
 
-            # crate lpf
-            self.lpf = LowPassFilter(self.getFs(), debug=False)
             # apply lpf
             x[:,i] = self.lpf.filterSignal(x[:,i])
 
-            # create bpf
-            self.bpf = BandPassFilter(self.getFs(), debug=False)
             # apply bpf
             # if True:
             if self.thisBatchHrCache == None:
@@ -70,6 +81,8 @@ class HREstimator:
                 fh = 220 / 60
                 x[:,i] = self.bpf.filterSignal(x[:,i], fl, fh)
             else:
+                # FIXME The selected HR of the 3 values should be used,
+                # this approach causes loosing a signal completely if it goes to 0 once, due to the preserved filtering!
                 self.currentHR = self.thisBatchHrCache[i]
                 fl = self.alpha*self.currentHR/60
                 fh = self.beta*self.currentHR/60
@@ -83,10 +96,18 @@ class HREstimator:
 
             # self.log.log(f"channel:{i}, hr:{hr_i}bpm")
             # self.log.log(f"thisBatchHR:{thisBatchHR}")
-            # if self.debug or True:
-            #     fig = plt.figure()
-            #     plt.plot(xf, yf_i)
-            #     plt.show()
+            if self.debug:
+                fig = plt.figure("HR Estimator")
+                # plt.clf()
+                plt.plot(xf[0:self.N//2-1], np.abs(yf_i[0:self.N//2-1]), self.colors[i])
+                plt.draw()
+                plt.pause(0.001)
+
+                self.log.log(f"yf_i: {yf_i}")
+                self.log.log(f"shape(yf_i): {yf_i.shape}")
+                self.log.log(f"xf: {xf}")
+                self.log.log(f"xf.shape: {xf.shape}")
+                self.log.log(f"possible heart rates: {xf*60}")
 
         # for now use the green channel
         self.currentHR = thisBatchHR[1]

@@ -13,7 +13,7 @@ log = Log("real_time_hr_test_manual_face")
 videoPath = 0
 
 log.log("Creating camera")
-camera = RealTimeCamera(debug=True)
+camera = RealTimeCamera(debug=False)
 
 log.log("Creating faceSelector")
 faceSelector = FaceSelector(camera, debug=True)
@@ -28,7 +28,7 @@ log.log("Creating batcher")
 batcher = Batcher(frameProcessor, batchSizeT=3, bufSizeT=1*3, debug=False)
 
 log.log("Creating hrEstimator")
-hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
+hrEstimator = HREstimator(batcher.getSamplingRate, debug=True)
 
 try:
     log.log("Creating runner")

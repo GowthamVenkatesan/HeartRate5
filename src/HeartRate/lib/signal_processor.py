@@ -23,7 +23,21 @@ class IndependentComponentAnalysis:
         #     return self.ica.fit_transform(X)
         # else:
         #     return self.ica.transform(X)
-        return self.ica.fit_transform(X)
+        Y = self.ica.fit_transform(X)
+        # self.log.log(f"X.shape: {X.shape}")
+        # self.log.log(f"Y.shape: {Y.shape}")
+        if self.debug:
+            plt.figure("IndependentComponentAnalysis")
+            plt.clf()
+            
+            plt.subplot(2,1,1)
+            plt.plot(X)
+            plt.subplot(2,1,2)
+            plt.plot(Y)
+
+            plt.draw()
+            plt.pause(0.001)
+            return Y
 
     def getMixingMartrix(self):
         return self.ica.mixing_
@@ -38,10 +52,19 @@ class LowPassFilter:
         self.fs = fs
         self.log = Log('LowPassFilter')
 
-        if self.debug:
+        figure = plt.figure("LowPassFilter")
+        plt.clf()
+
+        self.channel = 0
+        self.colors = [ "r", "g", "b" ]
+
+        if False: #self.debug:
             self.log.log(f'Created iir lpf, N={N}, fc={fc}, fs={fs}, b={self.filter_b}, a={self.filter_a}')
             w, h = signal.freqz(self.filter_b, self.filter_a)
-            fig = plt.figure()
+            
+            fig = plt.figure("LowPassFilter")
+            plt.clf()
+
             plt.title('IIR LPF Frequency Response')
             ax1 = fig.add_subplot(111)
             plt.plot(w, 20 * np.log10(abs(h)), 'b')
@@ -52,26 +75,32 @@ class LowPassFilter:
             plt.plot(w, angles, 'g')
             plt.grid()
             plt.axis('tight')
-            plt.show()
+            
+            plt.draw()
+            plt.pause(0.001)
     
     def filterSignal(self, x):
         if self.zi is None:
             self.zi = signal.lfilter_zi(self.filter_b, self.filter_a)
         y, self.zi = signal.lfilter(self.filter_b, self.filter_a, x, zi=self.zi)
         if self.debug:
-            figure = plt.figure()
-            plt.suptitle("Low pass filter")
+            figure = plt.figure("LowPassFilter")
+
             plt.subplot(2,1,1)
-            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), x)
+            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), x, self.colors[self.channel])
             plt.title("raw")
             plt.xlabel("time")
             plt.ylabel("signal")
             plt.subplot(2,1,2)
-            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), y)
+            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), y, self.colors[self.channel])
             plt.title("filtered")
             plt.xlabel("time")
             plt.ylabel("signal")
-            plt.show()
+            
+            plt.draw()
+            plt.pause(0.001)
+
+            self.channel += 1
         return y
 
 class BandPassFilter:
@@ -81,23 +110,28 @@ class BandPassFilter:
         self.fs = fs
         self.debug = debug
 
-
         self.epsillon = 0.01
         self.log = Log("BandPassFilter")
+
+        figure = plt.figure("BandPassFilter")
+        plt.clf()
+
+        self.channel = 0
+        self.colors = ["r", "g", "b"]
     
     def filterSignal(self, x, fl, fh):
         fln = fl/(self.fs/2)
         fhn = fh/(self.fs/2)
-        if fln < 0:
+        if fln <= 0:
             fln = 0 + self.epsillon
             self.log.log(f"saturated fln: {fln}, original fl: {fl}")
-        elif fln > 1:
+        elif fln >= 1:
             fln = 1 - self.epsillon
             self.log.log(f"saturated fln: {fln}, original fl: {fl}")
-        if fhn < 0:
+        if fhn <= 0:
             fhn = 0 + self.epsillon
             self.log.log(f"saturated fhn: {fhn}, original fh: {fh}")
-        elif fhn > 1:
+        elif fhn >= 1:
             fhn = 1 - self.epsillon
             self.log.log(f"saturated fhn: {fhn}, original fh: {fh}")
             
@@ -106,31 +140,35 @@ class BandPassFilter:
         y, _ = signal.lfilter(self.b, self.a, x, zi=zi)
 
         if self.debug:
-            w, h = signal.freqz(self.b, self.a)
-            fig = plt.figure()
-            plt.title('IIR BPF Frequency Response')
-            ax1 = fig.add_subplot(111)
-            plt.plot(w, 20 * np.log10(abs(h)), 'b')
-            plt.ylabel('Amplitude [dB]', color='b')
-            plt.xlabel('Frequency [rad/sample]')
-            ax2 = ax1.twinx()
-            angles = np.unwrap(np.angle(h))
-            plt.plot(w, angles, 'g')
-            plt.grid()
-            plt.axis('tight')
-            plt.show()
+            # w, h = signal.freqz(self.b, self.a)
+            # fig = plt.figure("BandPassFilter")
+            # plt.title('IIR BPF Frequency Response')
+            # ax1 = fig.add_subplot(111)
+            # plt.plot(w, 20 * np.log10(abs(h)), 'b')
+            # plt.ylabel('Amplitude [dB]', color='b')
+            # plt.xlabel('Frequency [rad/sample]')
+            # ax2 = ax1.twinx()
+            # angles = np.unwrap(np.angle(h))
+            # plt.plot(w, angles, 'g')
+            # plt.grid()
+            # plt.axis('tight')
+            # plt.show()
 
-            figure = plt.figure()
-            plt.suptitle("BandPass Filter")
+            figure = plt.figure("BandPassFilter")
+            
             plt.subplot(2,1,1)
-            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), x)
+            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), x, self.colors[self.channel])
             plt.title("raw")
             plt.xlabel("time")
             plt.ylabel("signal")
             plt.subplot(2,1,2)
-            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), y)
+            plt.plot(np.linspace(0, x.shape[0]/self.fs, x.shape[0]), y, self.colors[self.channel])
             plt.title("filtered")
             plt.xlabel("time")
             plt.ylabel("signal")
-            plt.show()
+            
+            plt.draw()
+            plt.pause(0.001)
+
+            self.channel += 1
         return y
