@@ -18,11 +18,12 @@ class IndependentComponentAnalysis:
         self.ica = FastICA(n_components=3, max_iter=200)
     
     def fitTransform(self, X):
-        if self.firstRun:
-            self.firstRun = False
-            return self.ica.fit_transform(X)
-        else:
-            return self.ica.transform(X)
+        # if self.firstRun:
+        #     self.firstRun = False
+        #     return self.ica.fit_transform(X)
+        # else:
+        #     return self.ica.transform(X)
+        return self.ica.fit_transform(X)
 
     def getMixingMartrix(self):
         return self.ica.mixing_
@@ -80,10 +81,27 @@ class BandPassFilter:
         self.fs = fs
         self.debug = debug
 
+
+        self.epsillon = 0.01
         self.log = Log("BandPassFilter")
     
     def filterSignal(self, x, fl, fh):
-        self.b, self.a = signal.iirfilter(self.N, [fl/(self.fs/2), fh/(self.fs/2)], btype='bandpass', analog=False)
+        fln = fl/(self.fs/2)
+        fhn = fh/(self.fs/2)
+        if fln < 0:
+            fln = 0 + self.epsillon
+            self.log.log(f"saturated fln: {fln}, original fl: {fl}")
+        elif fln > 1:
+            fln = 1 - self.epsillon
+            self.log.log(f"saturated fln: {fln}, original fl: {fl}")
+        if fhn < 0:
+            fhn = 0 + self.epsillon
+            self.log.log(f"saturated fhn: {fhn}, original fh: {fh}")
+        elif fhn > 1:
+            fhn = 1 - self.epsillon
+            self.log.log(f"saturated fhn: {fhn}, original fh: {fh}")
+            
+        self.b, self.a = signal.iirfilter(self.N, [fln, fhn], btype='bandpass', analog=False)
         zi = signal.lfilter_zi(self.b, self.a)
         y, _ = signal.lfilter(self.b, self.a, x, zi=zi)
 

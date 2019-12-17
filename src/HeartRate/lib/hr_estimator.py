@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 from ..lib.signal_processor import IndependentComponentAnalysis, LowPassFilter, BandPassFilter
 from ..lib.display import Display
