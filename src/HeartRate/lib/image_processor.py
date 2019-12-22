@@ -56,7 +56,7 @@ class ImageProcessor:
         tsize = 2
         text = "%.0fbpm %.2fhz" % (bpm[0], bpm[0]/60)
         cv2.putText(img, text, \
-                    (10, 30), cv2.FONT_HERSHEY_PLAIN, tsize, (30, 30, 255))
+            (10, 30), cv2.FONT_HERSHEY_PLAIN, tsize, (30, 30, 255))
         text = "%.0fbpm %.2fhz" % (bpm[1], bpm[1]/60)
         cv2.putText(img, text, \
             (10, 70), cv2.FONT_HERSHEY_PLAIN, tsize, (30, 255, 30))
@@ -64,3 +64,12 @@ class ImageProcessor:
         cv2.putText(img, text, \
             (10, 110), cv2.FONT_HERSHEY_PLAIN, tsize, (255, 30, 30))
     
+    @classmethod
+    def renderSelectedBPMText(cls, img, bpm):
+        if bpm is None:
+            return
+
+        tsize = 2
+        text = "%.0fbpm %.2fhz" % (bpm, bpm/60)
+        cv2.putText(img, text, \
+                    (10, 150), cv2.FONT_HERSHEY_PLAIN, tsize, (255, 255, 255))

@@ -60,7 +60,7 @@ class LowPassFilter:
         self.channel = 0
         self.colors = [ "r", "g", "b" ]
 
-        if True: #self.debug:
+        if False: #self.debug:
             self.log.log(f'Created iir lpf, N={N}, fc={fc}, fs={fs}, b={self.filter_b}, a={self.filter_a}')
             w, h = signal.freqz(self.filter_b, self.filter_a)
             

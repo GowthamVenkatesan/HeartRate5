@@ -28,11 +28,7 @@ batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=3*2, debug=True)
 log.log("Creating hrEstimator")
 hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
 
-try:
-    log.log("Creating runner")
-    runner = Runner(batcher, hrEstimator, camera, debug=True)
-except KeyboardInterrupt:
-    log.log("stopping...")
-    camera.release()
+runner = Runner(batcher, hrEstimator, camera, debug=True)
+camera.release()
 
 log.log("done")

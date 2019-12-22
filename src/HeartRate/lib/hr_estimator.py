@@ -5,6 +5,29 @@ from ..lib.signal_processor import IndependentComponentAnalysis, LowPassFilter, 
 from ..lib.display import Display
 from ..util.log import Log
 
+class ChannelSelctor:
+
+    def __init__(self):
+        self.log = Log("ChannelSelector")
+        self.log.log("Ready")
+
+        # TODO: Set the limits correctly
+        # Values used now are to be changed in fututre!!!
+        self.l_limit = 60
+        self.h_limit = 120
+    
+    def select(self, values):
+        self.log.log(f"selct():")
+        selectedValues = [val for val in values if val < self.h_limit and val > self.l_limit]
+        if len(selectedValues) == 0:
+            # FATAL, None of the selected values contain the heart rate
+            # work with the second op from ica
+            self.log.log(f"FATAL: None of the channels contain hr, using second val, returning {values[1]}")
+            return values[1]
+        res = sum(selectedValues)/len(selectedValues)
+        self.log.log(f"values: {values} selected: {selectedValues} returning: {res}")
+        return res
+
 class HREstimator:
 
     def __init__(self, getFs, alpha=0.8, beta=1.2, fftWindow=512, debug=False):
@@ -21,7 +44,10 @@ class HREstimator:
         # to accomodate for the varying sampling rates...
 
         # ica
-        self.ica = IndependentComponentAnalysis(debug=True)
+        self.ica = IndependentComponentAnalysis(debug=self.debug)
+
+        # channelSelector
+        self.channelSelector = ChannelSelctor()
 
         # length of fft
         self.fftWindow = fftWindow
@@ -31,7 +57,6 @@ class HREstimator:
 
         # State variables
         self.currentHR = None
-        self.thisBatchHrCache = None
 
         self.colors = [ "r", "g", "b" ]
     
@@ -59,9 +84,9 @@ class HREstimator:
         # so we create the filters here,
         # useful for using the same figures throughout a batch :p
         # crate lpf
-        self.lpf = LowPassFilter(self.getFs(), debug=True)
+        self.lpf = LowPassFilter(self.getFs(), debug=self.debug)
         # create bpf
-        self.bpf = BandPassFilter(self.getFs(), debug=True)
+        self.bpf = BandPassFilter(self.getFs(), debug=self.debug)
 
         # clear fig
         if self.debug:
@@ -75,7 +100,7 @@ class HREstimator:
 
             # apply bpf
             # if True:
-            if self.thisBatchHrCache == None:
+            if self.currentHR == None:
                 self.log.log("using default bpf!")
                 fl = 40 / 60
                 fh = 220 / 60
@@ -83,7 +108,6 @@ class HREstimator:
             else:
                 # FIXME The selected HR of the 3 values should be used,
                 # this approach causes loosing a signal completely if it goes to 0 once, due to the preserved filtering!
-                self.currentHR = self.thisBatchHrCache[i]
                 fl = self.alpha*self.currentHR/60
                 fh = self.beta*self.currentHR/60
                 x[:,i] = self.bpf.filterSignal(x[:,i], fl, fh)
@@ -112,10 +136,9 @@ class HREstimator:
                 # self.log.log(f"xf.shape: {xf.shape}")
                 # self.log.log(f"possible heart rates: {xf*60}")
 
-        # for now use the green channel
-        self.currentHR = thisBatchHR[1]
-        self.thisBatchHrCache = thisBatchHR
-        return thisBatchHR
+        # select the channel using the ChannelSelctor
+        self.currentHR = self.channelSelector.select(thisBatchHR)
+        return thisBatchHR, self.currentHR
 
 class Runner:
 
@@ -130,17 +153,20 @@ class Runner:
 
         self.display = Display()
         self.hr = []
+        self.selectedHr = []
 
-        thisHr = hrEstimator.estimateHR(batcher.getNextBatch())
-        self.display.render(camera.getLastReadFrame(), thisHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
+        thisHr, thisSelectedHr = hrEstimator.estimateHR(batcher.getNextBatch())
+        self.display.render(camera.getLastReadFrame(), thisHr, thisSelectedHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
         try:
             while thisHr is not None:
                 self.hr.append(thisHr)
-                thisHr = hrEstimator.estimateHR(batcher.getNextBatch())
-                self.display.render(camera.getLastReadFrame(), thisHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
+                self.selectedHr.append(thisSelectedHr)
+                thisHr, thisSelectedHr = hrEstimator.estimateHR(batcher.getNextBatch())
+                self.display.render(camera.getLastReadFrame(), thisHr, thisSelectedHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
         except KeyboardInterrupt:
             self.log.log("displaying results")
             self.displayResults()
+            self.log.log(f"Runner done()")
         
     def displayResults(self):
         # convert hr list to np array
@@ -148,18 +174,23 @@ class Runner:
         
         fig = plt.figure()
         plt.suptitle("Heart Rate")
-        plt.subplot(3, 1, 1)
+        plt.subplot(4, 1, 1)
         plt.plot(np.linspace(0, self.camera.getFrameCount()/self.batcher.getSamplingRate(), self.hr.shape[0]), self.hr[:,0], 'blue', label='Channel 1')
         plt.xlabel("Time (seconds)")
         plt.ylabel("Heart Rate (bpm)")
         plt.legend()
-        plt.subplot(3, 1, 2)
+        plt.subplot(4, 1, 2)
         plt.plot(np.linspace(0, self.camera.getFrameCount()/self.batcher.getSamplingRate(), self.hr.shape[0]), self.hr[:,1], 'green', label='Channel 2')
         plt.xlabel("Time (seconds)")
         plt.ylabel("Heart Rate (bpm)")
         plt.legend()
-        plt.subplot(3, 1, 3)
+        plt.subplot(4, 1, 3)
         plt.plot(np.linspace(0, self.camera.getFrameCount()/self.batcher.getSamplingRate(), self.hr.shape[0]), self.hr[:,2], 'red', label='Channel 3')
+        plt.xlabel("Time (seconds)")
+        plt.ylabel("Heart Rate (bpm)")
+        plt.legend()
+        plt.subplot(4, 1, 4)
+        plt.plot(np.linspace(0, self.camera.getFrameCount()/self.batcher.getSamplingRate(), self.hr.shape[0]), self.selectedHr, 'black', label='Selected HR')
         plt.xlabel("Time (seconds)")
         plt.ylabel("Heart Rate (bpm)")
         plt.legend()
