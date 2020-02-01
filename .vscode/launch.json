@@ -23,12 +23,12 @@
             "console": "integratedTerminal"
         },
         {
-            "name": "Python: Current File (Integrated Terminal)",
+            "name": "Python: Filter Test",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
             "cwd": "${workspaceFolder}\\src",
             "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.filter_test",
             "console": "integratedTerminal"
         },
         {
@@ -137,6 +137,15 @@
             "cwd": "${workspaceFolder}\\src",
             "envFile": "${workspaceFolder}\\src\\dev.env",
             "module": "HeartRate.test.real_time_hr_test",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Current File (Integrated Terminal)",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
             "console": "integratedTerminal"
         },
     ]
