@@ -1,3 +1,6 @@
+import concurrent.futures
+from concurrent.futures.thread import ThreadPoolExecutor
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -148,26 +151,36 @@ class Runner:
         self.hrEstimator = hrEstimator
         self.camera = camera
         self.debug = debug
-
+        
         self.log = Log("Runner")
 
         self.display = Display()
         self.hr = []
         self.selectedHr = []
+        
+        self.executor = ThreadPoolExecutor(max_workers=1)
 
-        thisHr, thisSelectedHr = hrEstimator.estimateHR(batcher.getNextBatch())
-        self.display.render(camera.getLastReadFrame(), thisHr, thisSelectedHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
+        # run
+        self.loop()
+    
+    def loop(self):
+        thisHr = 0
         try:
             while thisHr is not None:
-                self.hr.append(thisHr)
-                self.selectedHr.append(thisSelectedHr)
-                thisHr, thisSelectedHr = hrEstimator.estimateHR(batcher.getNextBatch())
-                self.display.render(camera.getLastReadFrame(), thisHr, thisSelectedHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
+                self.executor.submit(self.process())
         except KeyboardInterrupt:
+            self.executor.shutdown()
             self.log.log("displaying results")
             self.displayResults()
             self.log.log(f"Runner done()")
-        
+    
+    def process(self):
+        thisHr, thisSelectedHr = self.hrEstimator.estimateHR(self.batcher.getNextBatch())
+        self.hr.append(thisHr)
+        self.selectedHr.append(thisSelectedHr)
+        self.display.render(self.camera.getLastReadFrame(), thisHr, thisSelectedHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
+        pass
+
     def displayResults(self):
         # convert hr list to np array
         self.hr = np.array(self.hr)
