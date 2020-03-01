@@ -23,6 +23,12 @@ class Batcher:
         self.channel_means = np.empty((self.batchSize, 3))
         self.channel_means_sliding = np.empty((self.bufSize, 3))
 
+       # hamming window
+        self.window = np.empty(self.channel_means_sliding.shape)
+        w = np.hamming(self.channel_means_sliding.shape[0])
+        for i in range(3):
+            self.window[:, i] = w
+
         self.empty = True
 
         # state vars
@@ -44,13 +50,13 @@ class Batcher:
                 return None
             self.empty = False
             # self.log.log(f"onReturn:{self.channel_means_sliding}")
-            return self.channel_means_sliding.copy()
+            return self.channel_means_sliding.copy() * self.window
         else:
             if not self._advance_channel_means_sliding():
                 self.log.log("_advance_channel_means_sliding() returned False!")
                 return None
             # self.log.log(f"onReturn:{self.channel_means_sliding}")
-            return self.channel_means_sliding.copy()
+            return self.channel_means_sliding.copy() * self.window
     
     def _fill_channel_means(self):
         self.log.log("_fill_channel_means():")
