@@ -29,19 +29,26 @@ log.log("Creating camera")
 camera = Camera(videoPath, debug=True)
 
 log.log("Creating faceSelector")
-# faceSelector = ManualFaceSelector(camera, debug=True)
 faceSelector = FaceSelector(camera, debug=True)
 
 log.log("Creating frameProcessor")
-frameProcessor = FrameProcessor(faceSelector, debug=True)
+frameProcessor = FrameProcessor(faceSelector, debug=False)
 
 # process 2s of video in a batch, no oeverlap
 log.log("Creating batcher")
-# batcher = Batcher(frameProcessor, batchSizeT=20, bufSize=3*20, debug=True)
-batcher = Batcher(frameProcessor, batchSizeT=1, bufSizeT=3*1, debug=True)
+# batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=3*2, debug=True)
+# batcher = Batcher(frameProcessor, batchSizeT=4, bufSizeT=1*4, debug=False)
+# batcher = Batcher(frameProcessor, batchSizeT=3, bufSizeT=3*1, debug=False)
+batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=False)
 
 log.log("Creating hrEstimator")
 hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
 
+
 log.log("Creating runner")
 runner = Runner(batcher, hrEstimator, camera, debug=True)
+log.log("stopping...")
+log.log("releasing camera")
+camera.release()
+
+log.log("done")

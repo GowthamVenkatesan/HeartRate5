@@ -4,6 +4,7 @@ import numpy as np
 from scipy import signal
 
 from ..lib.frame_processor import FrameProcessor
+from ..lib.camera import RealTimeCamera
 from ..util.log import Log
 
 class Batcher:
@@ -132,5 +133,9 @@ class Batcher:
     # added forom FileBatcher,
     # now Runner acquires samplingRate from us 
     def getSamplingRate(self):
-        self.log.log(f"getSamplingRate(): returning: {self.averageBatchFps}")
-        return self.averageBatchFps
+        if type(self.frameProcessor.faceSelector.camera) == RealTimeCamera:
+            self.log.log(f"getSamplingRate(): returning: {self.averageBatchFps}")
+            return self.averageBatchFps
+        else:
+            self.log.log(f"getSamplingRate(): returning: {self.frameProcessor.faceSelector.camera.getFps()}")
+            return self.frameProcessor.faceSelector.camera.getFps()

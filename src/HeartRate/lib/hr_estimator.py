@@ -175,7 +175,11 @@ class Runner:
             self.log.log(f"Runner done()")
     
     def process(self):
-        thisHr, thisSelectedHr = self.hrEstimator.estimateHR(self.batcher.getNextBatch())
+        thisRes = self.hrEstimator.estimateHR(self.batcher.getNextBatch())
+        if thisRes == None:
+            thisHr, thisSelectedHr = [-1, -1, -1], -1
+        else:
+            thisHr, thisSelectedHr = thisRes
         self.hr.append(thisHr)
         self.selectedHr.append(thisSelectedHr)
         self.display.render(self.camera.getLastReadFrame(), thisHr, thisSelectedHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
