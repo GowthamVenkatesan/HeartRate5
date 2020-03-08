@@ -53,17 +53,17 @@ class LowPassFilter:
         self.log = Log('LowPassFilter')
 
     def filterSignal(self, x):
-        y = self.butter_lowpass_filter(x, self.fc, self.fs, self.N)
+        y = self.butter_lowpass_filter(x, self.fc, self.fs)
         return y
     
-    def butter_lowpass(self, cutoff, fs, order=7):
+    def butter_lowpass(self, cutoff, fs):
         nyq = 0.5 * fs
         normal_cutoff = cutoff / nyq
-        b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)
+        b, a = signal.butter(self.N, normal_cutoff, btype='low', analog=False)
         return b, a
 
-    def butter_lowpass_filter(self, data, cutoff, fs, order=7):
-        b, a = self.butter_lowpass(cutoff, fs, order=order)
+    def butter_lowpass_filter(self, data, cutoff, fs):
+        b, a = self.butter_lowpass(cutoff, fs)
         self.zi = signal.lfilter_zi(b, a)
         y = signal.lfilter(b, a, data)
         return y
@@ -84,26 +84,26 @@ class BandPassFilter:
         fhn = fh / nyq
         if fln <= 0:
             fln = 0 + self.epsillon
-            self.log.log(f"saturated fln: {fln}, original fl: {fl}")
+            self.log.log(f"WARN: saturated fln: {fln}, original fl: {fl}")
         elif fln >= 1:
             fln = 1 - self.epsillon
-            self.log.log(f"saturated fln: {fln}, original fl: {fl}")
+            self.log.log(f"WARN: saturated fln: {fln}, original fl: {fl}")
         if fhn <= 0:
             fhn = 0 + self.epsillon
-            self.log.log(f"saturated fhn: {fhn}, original fh: {fh}")
+            self.log.log(f"WARN: saturated fhn: {fhn}, original fh: {fh}")
         elif fhn >= 1:
             fhn = 1 - self.epsillon
-            self.log.log(f"saturated fhn: {fhn}, original fh: {fh}")
+            self.log.log(f"WARN: saturated fhn: {fhn}, original fh: {fh}")
         
-        y = self.butter_bandpass_filter(x, fln, fhn, self.fs, order=self.N)
+        y = self.butter_bandpass_filter(x, fln, fhn, self.fs)
         return y
 
-    def butter_bandpass(self, fs, fl, fh, order=2):
-        b, a = signal.butter(order, [fl, fh], btype='band', analog=False)
+    def butter_bandpass(self, fs, fl, fh):
+        b, a = signal.butter(self.N, [fl, fh], btype='band', analog=False)
         return b, a
 
-    def butter_bandpass_filter(self, data, fl, fh, fs, order=7):
-        b, a = self.butter_bandpass(fs, fl, fh, order=order)
+    def butter_bandpass_filter(self, data, fl, fh, fs):
+        b, a = self.butter_bandpass(fs, fl, fh)
         self.zi = signal.lfilter_zi(b, a)
         y = signal.lfilter(b, a, data)
         return y

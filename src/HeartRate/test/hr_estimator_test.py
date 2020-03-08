@@ -39,7 +39,7 @@ log.log("Creating batcher")
 # batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=3*2, debug=True)
 # batcher = Batcher(frameProcessor, batchSizeT=4, bufSizeT=1*4, debug=False)
 # batcher = Batcher(frameProcessor, batchSizeT=3, bufSizeT=3*1, debug=False)
-batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=False)
+batcher = Batcher(frameProcessor, batchSizeT=0.5, bufSizeT=4*0.5, debug=True)
 
 log.log("Creating hrEstimator")
 hrEstimator = HREstimator(batcher.getSamplingRate, debug=True)

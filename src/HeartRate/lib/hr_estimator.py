@@ -33,6 +33,19 @@ class ChannelSelctor:
         self.log.log(f"values: {values} selected: {selectedValues} returning: {res}")
         return res
 
+class MaxSpectrumChannelSelector:
+
+    def __init__(self):
+        self.log = Log("MaxSpectrumChannelSelector")
+        self.log.log("Ready")
+
+    def select(self, spectra):
+        self.log.log(f"select():")
+        # maxPowers = [spectra[:,i].max() for i in range(3)]
+        maxPowers = np.amax(np.abs(spectra), axis=0)
+        self.log.log(f"maxPowers: {maxPowers}")
+        return spectra[:,np.argmax(maxPowers)]
+
 class HREstimator:
 
     def __init__(self, getFs, alpha=0.8, beta=1.2, fftWindow=512, debug=False):
@@ -52,7 +65,7 @@ class HREstimator:
         self.ica = IndependentComponentAnalysis(debug=self.debug)
 
         # channelSelector
-        self.channelSelector = ChannelSelctor()
+        self.channelSelector = MaxSpectrumChannelSelector()
 
         # length of fft
         self.fftWindow = fftWindow
@@ -70,41 +83,29 @@ class HREstimator:
         Given a 2d array in x
         consisting of the time series of each channel
         """
-
         if x is None:
             self.log.log("Got None x!")
             return None
 
-        self.log.log(f"estimateHR(); {x.mean()}")
-
         self.N = x.shape[0]
+        # alloc array for holding spectrum
+        spectra = np.empty((self.fftWindow, 3), dtype=np.complex)
 
-        # perform ICA
         self.log.log("running ica")
         x = self.ica.fitTransform(x)
         self.log.log("ica done")
 
         thisBatchHR = []
-        # fs does not change within a batch,
-        # so we create the filters here,
-        # useful for using the same figures throughout a batch :p
-        # crate lpf
-        self.lpf = LowPassFilter(self.getFs(), debug=self.debug)
-        # create bpf
-        self.bpf = BandPassFilter(self.getFs(), debug=self.debug)
 
-        # clear fig
+        self.lpf = LowPassFilter(self.getFs(), debug=self.debug, N=7)
+        self.bpf = BandPassFilter(self.getFs(), debug=self.debug, N=2)
+
         if self.debug:
             fig = plt.figure("HR Estimator")
             plt.clf()
         
         for i in range(3):
-
-            # apply lpf
             x[:,i] = self.lpf.filterSignal(x[:,i])
-
-            # apply bpf
-            # if True:
             if self.currentHR == None:
                 self.log.log("using default bpf!")
                 fl = 40 / 60
@@ -116,33 +117,30 @@ class HREstimator:
                 fl = self.alpha*self.currentHR/60
                 fh = self.beta*self.currentHR/60
                 x[:,i] = self.bpf.filterSignal(x[:,i], fl, fh)
-        
-            # fatal mistake,
-            # used N instead of fftWindow,
-            # now everything is broken!
+            
             yf_i = np.fft.fft(x[:,i], n=self.fftWindow)
-            # xf = np.linspace(0.0, 1.0/(2.0*self.T), yf_i.shape[0]//2)
+            spectra[:, i] = yf_i
+            self.log.log(f"y_{i}: \n{yf_i[:2]}")
+
             xf = np.fft.fftfreq(self.fftWindow, d=1/self.getFs())
             hr_i = xf[ yf_i[0:self.fftWindow//2-1].argmax() ] * 60
             thisBatchHR.append(hr_i)
 
-            # self.log.log(f"channel:{i}, hr:{hr_i}bpm")
-            # self.log.log(f"thisBatchHR:{thisBatchHR}")
             if self.debug:
                 fig = plt.figure("HR Estimator")
-                # plt.clf()
-                plt.plot(xf[0:self.fftWindow//2-1], np.abs(yf_i[0:self.fftWindow//2-1]), self.colors[i])
+                plt.plot(xf[0:self.fftWindow//2-1], np.abs(yf_i[0:self.fftWindow//2-1])**2, self.colors[i])
                 plt.draw()
                 plt.pause(0.001)
 
-                # self.log.log(f"yf_i: {yf_i}")
-                # self.log.log(f"shape(yf_i): {yf_i.shape}")
-                # self.log.log(f"xf: {xf}")
-                # self.log.log(f"xf.shape: {xf.shape}")
-                # self.log.log(f"possible heart rates: {xf*60}")
+        # perform channel selection
+        self.log.log(f"spectra: \n{spectra[:2, :]}")
 
         # select the channel using the ChannelSelctor
-        self.currentHR = self.channelSelector.select(thisBatchHR)
+        selectedSpectrum = self.channelSelector.select(spectra)
+        xf = np.fft.fftfreq(self.fftWindow, d=1/self.getFs())
+        self.currentHR = xf[ selectedSpectrum[0:self.fftWindow//2-1].argmax() ] * 60
+        # thisBatchHR.append(hr_i)
+        # self.currentHR = self.channelSelector.select(thisBatchHR)
         return thisBatchHR, self.currentHR
 
 class Runner:
@@ -172,7 +170,12 @@ class Runner:
                 t = datetime.datetime.now().time()
                 self.log.log(f"loop(): started: {t}")
                 self.batch = self.batcher.getNextBatch()
-                self.executor.submit(self.process)
+                if self.batch is None:
+                    # self.executor.submit(self.displayResults)
+                    # self.displayResults()
+                    return
+                self.executor.submit(self.process) # run on seperate thread
+                # self.process() # run on same thread
                 t = datetime.datetime.now().time()
                 self.log.log(f"loop(): ended: {t}")
         except KeyboardInterrupt:
@@ -182,6 +185,8 @@ class Runner:
             self.log.log(f"Runner done()")
     
     def process(self):
+        if self.batch is None:
+            return
         t = datetime.datetime.now().time()
         self.log.log(f"process(): started: {t}")
         thisRes = self.hrEstimator.estimateHR(self.batch.copy())
