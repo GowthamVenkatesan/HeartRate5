@@ -140,6 +140,15 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "Python: Fourier Series Test",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}\\src",
+            "envFile": "${workspaceFolder}\\src\\dev.env",
+            "module": "HeartRate.test.fourier_series_test",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Python: Current File (Integrated Terminal)",
             "type": "python",
             "request": "launch",

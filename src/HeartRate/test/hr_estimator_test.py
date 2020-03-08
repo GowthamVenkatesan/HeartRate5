@@ -26,7 +26,7 @@ fileSector = FileSelector()
 videoPath = fileSector.getSelectedFile(r"D:\Gowtham\Programs\HeartRate\HeartRate5\data")
 
 log.log("Creating camera")
-camera = Camera(videoPath, debug=True)
+camera = Camera(videoPath, debug=False)
 
 log.log("Creating faceSelector")
 faceSelector = FaceSelector(camera, debug=True)
@@ -42,7 +42,7 @@ log.log("Creating batcher")
 batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=False)
 
 log.log("Creating hrEstimator")
-hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
+hrEstimator = HREstimator(batcher.getSamplingRate, debug=True)
 
 
 log.log("Creating runner")

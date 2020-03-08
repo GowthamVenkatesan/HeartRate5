@@ -15,7 +15,7 @@ class IndependentComponentAnalysis:
         self.debug = debug
         self.firstRun = True
 
-        self.ica = FastICA(n_components=3, max_iter=200)
+        self.ica = FastICA(n_components=3, max_iter=400)
     
     def fitTransform(self, X):
         # if self.firstRun:
@@ -56,7 +56,7 @@ class LowPassFilter:
         y = self.butter_lowpass_filter(x, self.fc, self.fs, self.N)
         return y
     
-    def butter_lowpass(self, cutoff, fs, order=5):
+    def butter_lowpass(self, cutoff, fs, order=7):
         nyq = 0.5 * fs
         normal_cutoff = cutoff / nyq
         b, a = signal.butter(order, normal_cutoff, btype='low', analog=False)

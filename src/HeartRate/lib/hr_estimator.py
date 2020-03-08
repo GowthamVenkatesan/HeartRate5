@@ -1,3 +1,5 @@
+import datetime
+
 import concurrent.futures
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -167,7 +169,12 @@ class Runner:
         thisHr = 0
         try:
             while thisHr is not None:
-                self.executor.submit(self.process())
+                t = datetime.datetime.now().time()
+                self.log.log(f"loop(): started: {t}")
+                self.batch = self.batcher.getNextBatch()
+                self.executor.submit(self.process)
+                t = datetime.datetime.now().time()
+                self.log.log(f"loop(): ended: {t}")
         except KeyboardInterrupt:
             self.executor.shutdown()
             self.log.log("displaying results")
@@ -175,7 +182,10 @@ class Runner:
             self.log.log(f"Runner done()")
     
     def process(self):
-        thisRes = self.hrEstimator.estimateHR(self.batcher.getNextBatch())
+        t = datetime.datetime.now().time()
+        self.log.log(f"process(): started: {t}")
+        thisRes = self.hrEstimator.estimateHR(self.batch.copy())
+        self.batch = None
         if thisRes == None:
             thisHr, thisSelectedHr = [-1, -1, -1], -1
         else:
@@ -183,7 +193,8 @@ class Runner:
         self.hr.append(thisHr)
         self.selectedHr.append(thisSelectedHr)
         self.display.render(self.camera.getLastReadFrame(), thisHr, thisSelectedHr, self.camera.getFrameNum()/self.camera.getFrameCount()*100)
-        pass
+        t = datetime.datetime.now().time()
+        self.log.log(f"process(): ended: {t}")
 
     def displayResults(self):
         # convert hr list to np array

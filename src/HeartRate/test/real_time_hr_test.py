@@ -19,17 +19,18 @@ log.log("Creating faceSelector")
 faceSelector = FaceSelector(camera, debug=True)
 
 log.log("Creating frameProcessor")
-frameProcessor = FrameProcessor(faceSelector, debug=False)
+frameProcessor = FrameProcessor(faceSelector, debug=True)
 
 # process 2s of video in a batch, no oeverlap
 log.log("Creating batcher")
 # batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=3*2, debug=True)
 # batcher = Batcher(frameProcessor, batchSizeT=4, bufSizeT=1*4, debug=False)
 # batcher = Batcher(frameProcessor, batchSizeT=3, bufSizeT=3*1, debug=False)
-batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=False)
+# batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=False)
+batcher = Batcher(frameProcessor, batchSizeT=1, bufSizeT=2*1, debug=True)
 
 log.log("Creating hrEstimator")
-hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
+hrEstimator = HREstimator(batcher.getSamplingRate, debug=True)
 
 
 log.log("Creating runner")
