@@ -6,7 +6,7 @@ from ..lib.image_processor import ImageProcessor
 
 videoPath = r'D:\Gowtham\Programs\HeartRate\HeartRate5\data\gowtham.mp4'
 
-faceSelector = DLibFaceSelector(Camera(videoPath))
+faceSelector = DLibFaceSelector(Camera(videoPath), debug=False)
 frame = faceSelector.getFrame()
 
 while frame is not None:

@@ -56,15 +56,37 @@ class FaceSelector():
         return selectedImage
 
 class DLibFaceSelector:
-    def __init__(self, camera, debug=False):
+    def __init__(self, camera, maxDetectionAge=5, debug=False):
         self.log = Log("DLibFaceSelector")
         self.debug = debug
         self.camera = camera
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor("D:\\Gowtham\\Programs\\HeartRate\\HeartRate5\\data\\shape_predictor_68_face_landmarks.dat")
+        self.maxDetectionAge = maxDetectionAge
 
+        self.detectionAge = 0
         self.cachedRect = None
         self.cachedContour = None
+        self.cachedMask = None
+
+        self.contourPath = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+        ]
     
     def getFrame(self):
         baseImage = self.camera.getFrame()
@@ -75,24 +97,70 @@ class DLibFaceSelector:
         grayImage = cv2.cvtColor(baseImage, cv2.COLOR_BGR2GRAY)
 
         # Get faces into webcam's image
-        rects = self.detector(grayImage, 0)
-        if len(rects) <= 0:
-            self.log.log("found no faces!")
-            if self.faceRect == None:
-                # skip until we have found a face from start of video
-                # FIXME: Skipping frames like this may cause fps calculation to be incorrect during start!!!
-                self.log.log("skipping frame!")
-                return self.getFrame()
+        if self.detectionAge >= self.maxDetectionAge or self.cachedRect == None:
+            rects = self.detector(grayImage, 0)
+            if len(rects) <= 0:
+                self.log.log("found no faces!")
+                if self.faceRect == None:
+                    # skip until we have found a face from start of video
+                    # FIXME: Skipping frames like this may cause fps calculation to be incorrect during start!!!
+                    self.log.log("skipping frame!")
+                    return self.getFrame()
+            else:
+                self.cachedRect = rects[0]
+                x1, y1, x2, y2, w, h = self.cachedRect.left(), self.cachedRect.top(), self.cachedRect.right() + \
+                    1, self.cachedRect.bottom() + 1, self.cachedRect.width(), self.cachedRect.height()
+                shape = self.predictor(grayImage, self.cachedRect)
+                self.cachedContour = face_utils.shape_to_np(shape)
+                
+                thisContours = self.generateContours()
+                print(f"baseImage.shape: {baseImage.shape}")
+                mask = np.zeros(baseImage.shape[:2], dtype=np.uint8)
+                cv2.fillPoly(mask, pts=[thisContours], color=255)
+                # cv2.imshow("mask", mask)
+                baseImage = cv2.bitwise_and(baseImage, baseImage, mask=mask)
+                roi = baseImage[y1:y2, \
+                                x1:x2, \
+                                :]
+                roi = cv2.resize(roi, (300, 300))
+                mask = cv2.resize(mask, (300, 300))
+                self.cachedMask = mask
+                self.detectionAge = 0
         else:
-            self.cachedRect = rects[0]
-            shape = self.predictor(grayImage, self.cachedRect)
-            self.cachedContour = face_utils.shape_to_np(shape)
-            for (x,y) in self.cachedContour:
-                cv2.circle(baseImage, (x, y), 2, (0, 255, 0), -1)
+            x1, y1, x2, y2, w, h = self.cachedRect.left(), self.cachedRect.top(), self.cachedRect.right() + \
+                    1, self.cachedRect.bottom() + 1, self.cachedRect.width(), self.cachedRect.height()
+            roi = baseImage[y1:y2, \
+                                x1:x2, \
+                                :]
+            roi = cv2.resize(roi, (300, 300))
+            roi = cv2.bitwise_and(roi, roi, mask=self.cachedMask)
+            self.detectionAge += 1
+
+        # print(f"ROI SHAPE: {roi.shape}")
         if self.debug:
+            # for (x,y) in self.cachedContour:
+            # x1, y1, x2, y2, w, h = self.cachedRect.left(), self.cachedRect.top(), self.cachedRect.right() + \
+            #     1, self.cachedRect.bottom() + 1, self.cachedRect.width(), self.cachedRect.height()
+            # cv2.circle(baseImage, (x1, y1), 5, (0, 255, 0), -1)
+            # cv2.circle(baseImage, (x2, y1), 5, (255, 0, 0), -1)
+            # cv2.drawContours(baseImage, [thisContours], 0, (255, 255, 255), 2)
             cv2.imshow("DLibFaceDetector", baseImage)
-        return baseImage
+        return roi
     pass
+
+    def generateContours(self):
+        x1, y1, x2, y2, w, h = self.cachedRect.left(), self.cachedRect.top(), self.cachedRect.right() + \
+            1, self.cachedRect.bottom() + 1, self.cachedRect.width(), self.cachedRect.height()
+
+        thisContour = []
+        # first is top left of face bounding box
+        thisContour.append([x1, y1])
+        # add all self.contourPath
+        for i in self.contourPath:
+            thisContour.append(self.cachedContour[i].tolist())
+        # last is top right
+        thisContour.append([x2, y1])
+        return np.array(thisContour)
 
 class ManualFaceSelector:
 
