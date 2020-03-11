@@ -23,7 +23,7 @@ frameProcessor = FrameProcessor(faceSelector, debug=True)
 
 # process 2s of video in a batch, no oeverlap
 log.log("Creating batcher")
-batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=3*2, debug=True)
+batcher = Batcher(frameProcessor, batchSizeT=1, bufSizeT=1*1, debug=True)
 
 log.log("Creating hrEstimator")
 hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)

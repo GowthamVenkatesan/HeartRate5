@@ -27,10 +27,10 @@ log.log("Creating batcher")
 # batcher = Batcher(frameProcessor, batchSizeT=4, bufSizeT=1*4, debug=False)
 # batcher = Batcher(frameProcessor, batchSizeT=3, bufSizeT=3*1, debug=False)
 # batcher = Batcher(frameProcessor, batchSizeT=2, bufSizeT=1*2, debug=False)
-batcher = Batcher(frameProcessor, batchSizeT=1, bufSizeT=2*1, debug=True)
+batcher = Batcher(frameProcessor, batchSizeT=1, bufSizeT=1*1, debug=True)
 
 log.log("Creating hrEstimator")
-hrEstimator = HREstimator(batcher.getSamplingRate, debug=True)
+hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
 
 
 log.log("Creating runner")

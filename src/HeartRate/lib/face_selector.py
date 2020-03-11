@@ -3,6 +3,8 @@ import pickle
 
 import numpy as np
 import cv2
+import dlib
+from imutils import face_utils
 
 from ..lib.camera import Camera
 from ..util.models import Point, Rect
@@ -52,6 +54,45 @@ class FaceSelector():
             cv2.imshow('FaceSelector', selectedImage)
             cv2.waitKey(1000//30)
         return selectedImage
+
+class DLibFaceSelector:
+    def __init__(self, camera, debug=False):
+        self.log = Log("DLibFaceSelector")
+        self.debug = debug
+        self.camera = camera
+        self.detector = dlib.get_frontal_face_detector()
+        self.predictor = dlib.shape_predictor("D:\\Gowtham\\Programs\\HeartRate\\HeartRate5\\data\\shape_predictor_68_face_landmarks.dat")
+
+        self.cachedRect = None
+        self.cachedContour = None
+    
+    def getFrame(self):
+        baseImage = self.camera.getFrame()
+        if baseImage is None:
+            return None
+
+        # Converting the image to gray scale
+        grayImage = cv2.cvtColor(baseImage, cv2.COLOR_BGR2GRAY)
+
+        # Get faces into webcam's image
+        rects = self.detector(grayImage, 0)
+        if len(rects) <= 0:
+            self.log.log("found no faces!")
+            if self.faceRect == None:
+                # skip until we have found a face from start of video
+                # FIXME: Skipping frames like this may cause fps calculation to be incorrect during start!!!
+                self.log.log("skipping frame!")
+                return self.getFrame()
+        else:
+            self.cachedRect = rects[0]
+            shape = self.predictor(grayImage, self.cachedRect)
+            self.cachedContour = face_utils.shape_to_np(shape)
+            for (x,y) in self.cachedContour:
+                cv2.circle(baseImage, (x, y), 2, (0, 255, 0), -1)
+        if self.debug:
+            cv2.imshow("DLibFaceDetector", baseImage)
+        return baseImage
+    pass
 
 class ManualFaceSelector:
 
