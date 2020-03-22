@@ -42,11 +42,11 @@ log.log("Creating batcher")
 batcher = Batcher(frameProcessor, batchSizeT=0.5, bufSizeT=4*0.5, debug=True)
 
 log.log("Creating hrEstimator")
-hrEstimator = HREstimator(batcher.getSamplingRate, debug=True)
+hrEstimator = HREstimator(batcher.getSamplingRate, debug=False)
 
 
 log.log("Creating runner")
-runner = Runner(batcher, hrEstimator, camera, debug=True)
+runner = Runner(batcher, hrEstimator, camera, debug=False)
 log.log("stopping...")
 log.log("releasing camera")
 camera.release()

@@ -31,9 +31,12 @@ class IndependentComponentAnalysis:
             plt.clf()
             
             plt.subplot(2,1,1)
-            plt.plot(X)
+            print(X.shape)
+            for i, c in zip(range(3), ["b", "g", "r"]):
+                plt.plot(X[:, i], color=c)
             plt.subplot(2,1,2)
-            plt.plot(Y)
+            for i, c in zip(range(3), ["b", "g", "r"]):
+                plt.plot(Y[:, i], color=c)
 
             plt.draw()
             plt.pause(0.001)

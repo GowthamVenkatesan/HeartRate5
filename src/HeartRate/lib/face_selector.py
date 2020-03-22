@@ -101,7 +101,7 @@ class DLibFaceSelector:
             rects = self.detector(grayImage, 0)
             if len(rects) <= 0:
                 self.log.log("found no faces!")
-                if self.faceRect == None:
+                if self.cachedRect == None:
                     # skip until we have found a face from start of video
                     # FIXME: Skipping frames like this may cause fps calculation to be incorrect during start!!!
                     self.log.log("skipping frame!")
@@ -118,7 +118,7 @@ class DLibFaceSelector:
                 mask = np.zeros(baseImage.shape[:2], dtype=np.uint8)
                 cv2.fillPoly(mask, pts=[thisContours], color=255)
                 # cv2.imshow("mask", mask)
-                baseImage = cv2.bitwise_and(baseImage, baseImage, mask=mask)
+                # baseImage = cv2.bitwise_and(baseImage, baseImage, mask=mask)
                 roi = baseImage[y1:y2, \
                                 x1:x2, \
                                 :]

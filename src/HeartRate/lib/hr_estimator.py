@@ -172,7 +172,7 @@ class Runner:
                 self.batch = self.batcher.getNextBatch()
                 if self.batch is None:
                     # self.executor.submit(self.displayResults)
-                    # self.displayResults()
+                    self.displayResults()
                     return
                 self.executor.submit(self.process) # run on seperate thread
                 # self.process() # run on same thread
