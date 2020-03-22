@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 import cv2
+import h5py
 
 from ..util.log import Log
 
@@ -108,3 +109,55 @@ class RealTimeCamera(Camera):
     
     def getFrame(self):
         return super().getFrame()
+
+class DataSetCamera(Camera):
+
+    def __init__(self, dataSetPath, debug=False):
+        super().__init__(0, debug)
+        
+        self.log = Log("DataSetCamera")
+        
+        self.log.log("Initializing")
+        self.f = h5py.File(dataSetPath, "r")
+        print(self.f.keys())
+        self.fs = self.f["fs"][()][0][0]
+        print(f"fs: {self.fs}")
+        self.ppg = self.f["ppg"][()]
+        print(f"ppg: {self.ppg}")
+        self.rgb = self.f["rgb"][()]
+        print(f"rgb: {self.rgb}")
+        print(f"rgb.shape: {self.rgb.shape}")
+        
+        self.frameCount = self.rgb.shape[0]
+        self.currentFrame = 0
+
+        self.lastReadFrame = None
+
+        # state variables
+        # set old time stapmp!
+        self.oldFrameTimeStamp = time.time()
+        self.curFrameTimeStamp = self.oldFrameTimeStamp + (1/30)
+        # fps related
+        self.fpsAverage = 0.0
+        self.fpsAverageWindow = None
+
+        self.log.log("Ready")
+    
+    def getFrame(self):
+        if self.currentFrame < self.rgb.shape[0]:
+            frame = self.f[self.rgb[self.currentFrame,0]][()]
+            frame = np.swapaxes(frame, 0, 2)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+            self.lastReadFrame = frame
+            self.currentFrame += 1
+            return frame
+        else:
+            self.f.close()
+            return None
+
+    def getFrameCount(self):
+        return self.rgb.shape[0]
+    
+    def getFps(self):
+        self.log.log(f"fps: {self.fs}")
+        return self.fs

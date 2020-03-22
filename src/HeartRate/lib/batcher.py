@@ -20,6 +20,12 @@ class Batcher:
         self.batches = self.bufSize // self.batchSize
         self.debug = debug
 
+        # if batchSize is -1, run the entire video all at onece
+        if batchSizeT == -1:
+            self.batchSize = self.frameProcessor.faceSelector.camera.getFrameCount()
+            self.bufSize = self.batchSize
+            self.batches = 1
+
         # State Variables
         self.channel_means = np.empty((self.batchSize, 3))
         self.channel_means_sliding = np.empty((self.bufSize, 3))
@@ -51,13 +57,15 @@ class Batcher:
                 return None
             self.empty = False
             # self.log.log(f"onReturn:{self.channel_means_sliding}")
-            return self.channel_means_sliding.copy() * self.window
+            self.res = self.channel_means_sliding.copy() * self.window
+            return self.res
         else:
             if not self._advance_channel_means_sliding():
                 self.log.log("_advance_channel_means_sliding() returned False!")
                 return None
             # self.log.log(f"onReturn:{self.channel_means_sliding}")
-            return self.channel_means_sliding.copy() * self.window
+            self.res = self.channel_means_sliding.copy() * self.window
+            return self.res
     
     def _fill_channel_means(self):
         self.log.log("_fill_channel_means():")
@@ -65,15 +73,19 @@ class Batcher:
         # save start time
         self.batchStartTime = time.time()
 
-        for i in range(self.batchSize):
+        for i in range(self.batchSize - 1):
             thisValues = self.frameProcessor.getNextValues()
             if thisValues is None:
                 self.log.log("next values is None!")
                 return False
+            for v in thisValues:
+                if np.isnan(v):
+                    raise RuntimeError(f"found Nan in mean of frame, exitting!")
             self.channel_means[i: ] = thisValues
         
         # save batch end times
         self.batchEndTime = time.time()
+
         # calc avgfps
         self.averageBatchFps = self.batchSize/(self.batchEndTime - self.batchStartTime)
 
@@ -110,7 +122,7 @@ class Batcher:
                 print(" ", end="")
             print("]")
             if self._fill_channel_means() == False:
-                return
+                raise RuntimeError(f"Not enough frames to fill buffer, exitting!")
             self._slide_channel_means_sliding()
             self.channel_means_sliding[-self.batchSize:] = self.channel_means[:]
         print("Buffer full :)")

@@ -44,7 +44,7 @@ class MaxSpectrumChannelSelector:
         # maxPowers = [spectra[:,i].max() for i in range(3)]
         maxPowers = np.amax(np.abs(spectra), axis=0)
         self.log.log(f"maxPowers: {maxPowers}")
-        return spectra[:,np.argmax(maxPowers)]
+        return spectra[:,np.argmax(maxPowers)], np.argmax(maxPowers)
 
 class HREstimator:
 
@@ -123,7 +123,7 @@ class HREstimator:
             self.log.log(f"y_{i}: \n{yf_i[:2]}")
 
             xf = np.fft.fftfreq(self.fftWindow, d=1/self.getFs())
-            hr_i = xf[ yf_i[0:self.fftWindow//2-1].argmax() ] * 60
+            hr_i = xf[ np.abs(yf_i[0:self.fftWindow//2-1]).argmax() ] * 60
             thisBatchHR.append(hr_i)
 
             if self.debug:
@@ -136,7 +136,14 @@ class HREstimator:
         self.log.log(f"spectra: \n{spectra[:2, :]}")
 
         # select the channel using the ChannelSelctor
-        selectedSpectrum = self.channelSelector.select(spectra)
+        selectedSpectrum, channel = self.channelSelector.select(spectra)
+        if self.debug:
+            f = plt.figure()
+            plt.plot(np.arange(x.shape[0]), x[:, channel], color=self.colors[channel])
+            plt.title("Selected Channel Means")
+            plt.xlabel("frame")
+            plt.ylabel("mean values")
+        
         xf = np.fft.fftfreq(self.fftWindow, d=1/self.getFs())
         self.currentHR = xf[ selectedSpectrum[0:self.fftWindow//2-1].argmax() ] * 60
         # thisBatchHR.append(hr_i)
@@ -174,8 +181,8 @@ class Runner:
                     # self.executor.submit(self.displayResults)
                     self.displayResults()
                     return
-                self.executor.submit(self.process) # run on seperate thread
-                # self.process() # run on same thread
+                # self.executor.submit(self.process) # run on seperate thread
+                self.process() # run on same thread
                 t = datetime.datetime.now().time()
                 self.log.log(f"loop(): ended: {t}")
         except KeyboardInterrupt:
@@ -227,4 +234,4 @@ class Runner:
         plt.xlabel("Time (seconds)")
         plt.ylabel("Heart Rate (bpm)")
         plt.legend()
-        plt.show()
+        # plt.show()
